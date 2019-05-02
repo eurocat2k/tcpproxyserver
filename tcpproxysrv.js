@@ -174,7 +174,7 @@ const getopts = require('getopts');
             console.log('remove %s [%d]', clientname, clientCount);
         });
         connection.on('data', (data) => {
-            if (connection.remoteAddress === options['matias_host'] && options['duplex']) {
+            if (connection.remoteAddress === options['duplex_host'] && options['duplex']) {
                 let flushed = remote_connection.write(data);
                 if (!flushed) {
                     server.pause();
