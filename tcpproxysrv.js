@@ -5,7 +5,11 @@ const process = require('process');
 const net     = require('net');
 const util    = require('util');
 const path    = require('path');
-const getopts = require('./getopts');
+const getopts = require('getopts');
+
+// or if we have getopts.js at local directory, we can import it directly
+//const getopts = require('./getopts');
+
 (function TcpProxyServer(){
     /**
      * handle exception
@@ -22,38 +26,38 @@ const getopts = require('./getopts');
         console.log('\r\nUsage:\r\n');
         console.log('\t%s [-D|--duplex] -r|--remote_server <remote address> -p|--remote_port <remote port> \\', prog);
         console.log('\t\t[-l|--local_server <local address>] [-o|--local_port <local port>] \\');
-        console.log('\t\t[-m|--matias_host <matias TTF dcs address>] [-x|--max_clients <#number>] \\');
+        console.log('\t\t[-m|--duplex_host <address of dedicated host for duplex comm.>] [-x|--max_clients <#number>] \\');
         console.log('\t\t[-G|--get_conf');
         console.log('\tWhere the mandatory arguments are:\r\n');
         console.log('\t\t-r|--remote_server - the remote host where the proxy server connects');
         console.log('\t\t-p|--remote_port   - the remote service which is used by proxy server during connection\r\n');
         console.log('\tthe optional arguments are:\r\n');
-        console.log('\t\t-D|--duplex        - allows MATIAS host to communicate the remote server in duplex mode. Default is false.');
+        console.log('\t\t-D|--duplex        - allows dedicated host to communicate the remote server in duplex mode. Default is false.');
         console.log('\t\t-l|--local_server  - the server listening address where clients can connect. Default is 0.0.0.0');
         console.log('\t\t-o|--local_port    - the server listening service which is transfered to remote server service port. Default is 8739');
-        console.log('\t\t-m|--matias_host   - the address of MATIAS TTF DCS IO VLAN address, in duplex mode two way communication allowed for this host');
+        console.log('\t\t-m|--duplex_host   - the address of dedicated client address, in duplex mode two way communication allowed for this host');
         console.log('\t\t-G|--get_conf      - lists default configuration options.');
         console.log('\t\t-x|--max_clients   - maximum number of clients allowed to connect to the proxy server. Default is 32\r\n\r\n');
         process.exit(0);
     }
     const options = getopts(process.argv.slice(2), {
         alias: {
-            G: 'get_conf',
-            h: 'help',
-            D: 'duplex',
-            m: 'matias_host',
-            l: 'local_server',
-            o: 'local_port',
-            r: 'remote_server',
-            p: 'remote_port',
-            x: 'max_clients'
+            G: 'get_conf',      // prints out our default - wired in - configuration
+            h: 'help',          // this help
+            D: 'duplex',        // flag for sign duplexity
+            m: 'duplex_host',   // address of the dedicated host, which - if duplex mode enabled - can communicated R/W with remote server
+            l: 'local_server',  // our server's address
+            o: 'local_port',    // our server's listening port
+            r: 'remote_server', // address of the remote server
+            p: 'remote_port',   // the remote service on the server
+            x: 'max_clients'    // maximum number of clients to connect
         },
         default: {
-            D: false,
-            m: '10.100.101.58',
-            l: '0.0.0.0',
-            o: 8739,
-            x: 32
+            D: false,           // by default duplex mode is not available
+            m: '10.2.139.11',   // this is the dedicated host, which in turn can communicate R/W with the remote server
+            l: '0.0.0.0',       // we accept IPv4 connection requests
+            o: 50000,           // listening port for R/O and|or R/W clients
+            x: 16
         }
     });
     if (options['help']) {
@@ -102,18 +106,18 @@ const getopts = require('./getopts');
         }
     } else {
     /**
-     * constants
+     * constants after processing command line arguments
      */
     const localaddress = options['local_server'];
     const localport    = options['local_port'];
     const remotehost   = options['remote_server'];
     const remoteport   = options['remote_port'];
     /**
-     *
+     * define or maximum number of client to be served - including the R/W client as well
      */
     const max_clients = options['max_clients'];
     /**
-     * active clients
+     * storage of active clients
      */
     let clients = {};
     /**
@@ -121,7 +125,7 @@ const getopts = require('./getopts');
      */
     let clientCount = 0;
     /**
-     * the remote server
+     * the connection to the remote server
      */
     const remote_connection = new net.Socket();
     remote_connection.connect(remoteport, remotehost);
@@ -149,8 +153,9 @@ const getopts = require('./getopts');
     remote_connection.on('drain', () => {
         remote_connection.resume();
     });
-
-    
+    /**
+     * set up our listening TCP server
+     */
     server.on('connection', connection =>  {
         let clientname = connection.remoteAddress+'_'+connection.remotePort;
         if (clientCount < max_clients) {
