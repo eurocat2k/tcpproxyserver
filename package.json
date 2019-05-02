@@ -1,0 +1,14 @@
+{
+  "name": "aftnproxy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "tcpproxysrv.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "G.Zelenak <gzelenak36@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "daemonize-process": "^2.0.0"
+  }
+}
