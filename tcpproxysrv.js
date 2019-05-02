@@ -67,7 +67,7 @@ const getopts = require('getopts');
         console.log('Default configuration:');
         for (let item in options) {
             switch(item) {
-                case 'matias_host':
+                case 'duplex_host':
                     console.log('\t%s:\t%s',item, options[item]);
                 break;
                 case 'local_address':
