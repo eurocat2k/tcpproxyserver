@@ -1,7 +1,7 @@
 {
   "name": "tcpproxysrv",
   "version": "1.0.0",
-  "description": "",
+  "description": "This little application allows TCP connections for clients to access one specific remote TCP server's service read only or for a dedicated host allows a duplex communication.",
   "main": "tcpproxysrv.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
