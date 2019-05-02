@@ -1,5 +1,5 @@
 {
-  "name": "aftnproxy",
+  "name": "tcpproxysrv",
   "version": "1.0.0",
   "description": "",
   "main": "tcpproxysrv.js",
@@ -9,6 +9,7 @@
   "author": "G.Zelenak <gzelenak36@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "daemonize-process": "^2.0.0"
-  }
+    "getopts": "^2.2.4"
+  },
+  "keywords": ["TCP proxy","TCP server","TCP multiplexer"]
 }
